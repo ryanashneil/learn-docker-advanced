@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t ryanash/test -f ./client/dev.Dockerfile ./client
+
+script:
+  - docker run ryanash/test npm test -- --coverage
+
+after_success:
+  - docker build -t ryanash/multi-client ./client
+  - docker build -t ryanash/multi-nginx ./nginx
+  - docker build -t ryanash/multi-server ./server
+  - docker build -t ryanash/multi-worker ./worker
+  # log in to docker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # push images to docker hub
+  - docker push ryanash/multi-client
+  - docker push ryanash/multi-nginx
+  - docker push ryanash/multi-server
+  - docker push ryanash/multi-worker
